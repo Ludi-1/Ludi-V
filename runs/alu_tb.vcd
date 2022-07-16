@@ -1,0 +1,53 @@
+$date
+	Sat Jul 16 13:10:22 2022
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module alu_tb $end
+$var reg 4 ! r_ALUctl [3:0] $end
+$upscope $end
+$scope module alu_tb $end
+$var reg 64 " r_Rs1 [63:0] $end
+$upscope $end
+$scope module alu_tb $end
+$var reg 64 # r_Rs2 [63:0] $end
+$upscope $end
+$scope module alu_tb $end
+$var reg 64 $ r_Immediate [63:0] $end
+$upscope $end
+$scope module alu_tb $end
+$var reg 1 % r_ALUsrc $end
+$upscope $end
+$scope module alu_tb $end
+$var wire 64 & w_Result [63:0] $end
+$upscope $end
+$scope module alu_tb $end
+$var wire 1 ' w_Zero $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+1'
+b0 &
+0%
+b0 $
+b0 #
+b0 "
+b0 !
+$end
+#200000
+0'
+b111 &
+1%
+b111 $
+b10 !
+#400000
+b1100 &
+0%
+b111 #
+b101 "
+#10000000
