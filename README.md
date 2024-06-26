@@ -1,11 +1,12 @@
 # Ludi-V
-A set of RISC-V softcore processors
-
-## Processor list
-- RV32I Single Cycle (In progress)
-- RV64IMAC 5-stage Pipelined (TODO)
-- RV64GC 5-stage Pipelined + Branch Prediction (TODO)
+A RV32I processor
 
 ## Functionalities
-- AXI Bus compatibility
-- UART communication
+
+
+## Setup guide
+Download the [riscv32-unknown-elf-gcc toolchain](https://github.com/riscv-collab/riscv-gnu-toolchain)
+```
+./configure --prefix=/opt/riscv --with-arch=rv32gc --with-abi=ilp32d
+make linux
+```
