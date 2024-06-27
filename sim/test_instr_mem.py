@@ -10,7 +10,7 @@ class TB:
     async def address(self):
         for i in range(0, 10):
             await Timer(10, units='ns')
-            self.dut.address.value = i*4
+            self.dut.address.value = i
 
 @cocotb.test()
 async def instr_mem_test_1(dut):
