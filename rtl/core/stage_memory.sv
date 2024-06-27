@@ -13,6 +13,7 @@ module stage_memory (
 always_ff @(posedge clk) begin
     mem_alu_result <= execute_alu_result;
     mem_rd <= execute_rd;
+    mem_wr_enable <= execute_wr_enable;
 end
 
 endmodule

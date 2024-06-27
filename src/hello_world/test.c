@@ -1,5 +1,7 @@
 int main(){
-    int z = 5;
+    int a = 5;
+    int b = 11;
+    int c = a + b;
     return 0;
 }
 

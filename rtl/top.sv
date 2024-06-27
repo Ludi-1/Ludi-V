@@ -17,12 +17,12 @@ stage_fetch fetch (
     .instr(fetch_instr)
 );
 
-wire [31:0] rs_data1, rs_data2;
+wire [31:0] rs_data1, rs_data2, decode_imm;
 wire [4:0] decode_rd;
 wire [3:0] decode_alu_ctrl;
 wire [31:0] decode_instr_addr;
 
-wire decode_wr_enable, decode_mem_to_reg, wb_wr_enable;
+wire decode_wr_enable, decode_mem_to_reg, decode_alu_src, wb_wr_enable;
 wire [31:0] wb_write_data;
 wire [4:0] wb_rd;
 wire [4:0] decode_shamt;
@@ -38,6 +38,8 @@ stage_decode decode (
     .decode_rd(decode_rd),
     .decode_alu_ctrl(decode_alu_ctrl),
     .decode_shamt(decode_shamt),
+    .decode_imm(decode_imm),
+    .decode_alu_src(decode_alu_src),
     .decode_wr_enable(decode_wr_enable),
     .decode_mem_to_reg(decode_mem_to_reg),
     .wb_wr_addr(wb_rd),
@@ -55,6 +57,8 @@ stage_execute execute (
     .execute_rd(execute_rd),
     .decode_instr_addr(decode_instr_addr),
     .execute_next_instr_addr(execute_next_instr_addr),
+    .decode_alu_src(decode_alu_src),
+    .decode_imm(decode_imm),
     .rs_data1(rs_data1),
     .rs_data2(rs_data2),
     .shamt(decode_shamt),

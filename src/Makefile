@@ -3,7 +3,7 @@ CFLAGS = -O0
 all: hello_world
 
 hello_world: hello_world.hex
-	# riscv32-unknown-elf-objdump -d hello_world.elf > hello_world.s
+	riscv32-unknown-elf-objdump -d hello_world.elf > hello_world.s
 
 hello_world.hex: hello_world.elf
 	riscv32-unknown-elf-objcopy -O verilog $^ $@

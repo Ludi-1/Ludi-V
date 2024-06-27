@@ -17,6 +17,9 @@ module stage_decode (
     output reg [4:0] decode_rd, // towards writeback
     output reg [3:0] decode_alu_ctrl, // alu ctrl
     output reg [4:0] decode_shamt, // shift amount
+    output reg [31:0] decode_imm,
+
+    output reg decode_alu_src,
 
     // Writeback stage to registers
     output wire decode_wr_enable,
@@ -89,16 +92,23 @@ always_ff @(posedge clk) begin: register_file
 end
 
 always_ff @(posedge clk) begin
-    decode_rd <= decode_rd;
+    decode_rd <= rd;
     decode_alu_ctrl <= {alu_op, funct3};
     decode_shamt <= shamt;
+    decode_imm <= opcode == I_TYPE ? 32'(signed'(i_imm)) : 0;
 end
 
 always_ff @(posedge clk) begin
     case (opcode)
-        7'b0010011: begin
+        R_TYPE: begin
             decode_wr_enable <= 1;
             decode_mem_to_reg <= 0;
+            decode_alu_src <= 0;
+        end
+        I_TYPE: begin
+            decode_wr_enable <= 1;
+            decode_mem_to_reg <= 0;
+            decode_alu_src <= 1;
             // case (funct3)
             //     3'b000: begin
             //     end
@@ -111,6 +121,7 @@ always_ff @(posedge clk) begin
         default: begin
             decode_wr_enable <= 0;
             decode_mem_to_reg <= 0;
+            decode_alu_src <= 0;
         end
     endcase
 end
