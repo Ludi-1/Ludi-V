@@ -10,6 +10,7 @@ async def stage_fetch_test(dut):
 
     dut.rst.value = 1
     await RisingEdge(dut.clk)
+    await RisingEdge(dut.clk)
     dut.rst.value = 0
 
     for _ in range(256):

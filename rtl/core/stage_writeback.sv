@@ -7,6 +7,8 @@ module stage_writeback (
     input wire [31:0] mem_alu_result,
     input wire [31:0] mem_read_data,
     output reg [31:0] wb_write_data,
+    input wire [31:0] mem_instr_addr_plus,
+    output wire [31:0] wb_next_instr_addr,
     input wire mem_wr_enable,
     output reg wb_wr_enable
 );
@@ -14,5 +16,6 @@ module stage_writeback (
 assign wb_write_data = mem_to_reg ? mem_read_data : mem_alu_result;
 assign wb_rd = mem_rd;
 assign wb_wr_enable = mem_wr_enable;
+assign wb_next_instr_addr = mem_instr_addr_plus;
 
 endmodule

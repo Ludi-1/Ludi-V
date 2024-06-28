@@ -3,8 +3,10 @@ module stage_decode (
     input wire rst,
 
     // Pass instr add to EX stage
-    input [31:0] fetch_instr_addr,
+    input wire[31:0] fetch_instr_addr,
+    input wire [31:0] fetch_instr_addr_plus,
     output reg [31:0] decode_instr_addr,
+    output reg [31:0] decode_instr_addr_plus,
 
     // Instruction to be decoded
     input wire [31:0] instr,
@@ -19,6 +21,10 @@ module stage_decode (
     output reg [4:0] decode_shamt, // shift amount
     output reg [31:0] decode_imm,
 
+    output reg decode_jump,
+    output reg decode_jal_src,
+    output reg decode_branch,
+
     output reg decode_alu_src,
 
     // Writeback stage to registers
@@ -30,7 +36,8 @@ module stage_decode (
 );
 
 always_ff @(posedge clk) begin : instr_addr
-    decode_instr_addr <= fetch_instr_addr;    
+    decode_instr_addr <= fetch_instr_addr;
+    decode_instr_addr_plus <= fetch_instr_addr_plus;  
 end
 
 localparam [6:0]R_TYPE  = 7'b0110011,
@@ -50,7 +57,8 @@ wire [6:0] funct7;
 wire [11:0] i_imm;
 wire [4:0] s_imm1;
 wire [6:0] s_imm2;
-wire [4:0] shamt; 
+wire [4:0] shamt;
+wire [19:0] jal_imm;
 wire alu_op;
 
 assign opcode = instr[6:0];
@@ -62,6 +70,7 @@ assign funct7 = instr[31:25];
 assign i_imm = instr[31:20];
 assign s_imm1 = instr[11:7];
 assign s_imm2 = instr[31:25];
+assign jal_imm = {instr[31], instr[19:12], instr[20], instr[30:21]};
 assign shamt = instr[24:20]; // shift amount
 assign alu_op = instr[30];
 
@@ -95,7 +104,6 @@ always_ff @(posedge clk) begin
     decode_rd <= rd;
     decode_alu_ctrl <= {alu_op, funct3};
     decode_shamt <= shamt;
-    decode_imm <= opcode == I_TYPE ? 32'(signed'(i_imm)) : 0;
 end
 
 always_ff @(posedge clk) begin
@@ -104,24 +112,33 @@ always_ff @(posedge clk) begin
             decode_wr_enable <= 1;
             decode_mem_to_reg <= 0;
             decode_alu_src <= 0;
+            decode_imm <= 0;
+            decode_jump <= 0;
+            decode_jal_src <= 0;
         end
         I_TYPE: begin
             decode_wr_enable <= 1;
             decode_mem_to_reg <= 0;
             decode_alu_src <= 1;
-            // case (funct3)
-            //     3'b000: begin
-            //     end
-            // endcase
-            // if (funct3 == 3'b001) begin
-            // end else if (funct3 == 3'b101) begin
-            // end else begin
-            // end
+            decode_imm <= 32'(signed'(i_imm));
+            decode_jump <= 0;
+            decode_jal_src <= 0;
+        end
+        JAL: begin
+            decode_wr_enable <= 1;
+            decode_mem_to_reg <= 0;
+            decode_alu_src <= 0; // dont care
+            decode_imm <= {12'b0, jal_imm};
+            decode_jump <= 1;
+            decode_jal_src <= 1; // JAL = 1, JALR = 0
         end
         default: begin
             decode_wr_enable <= 0;
             decode_mem_to_reg <= 0;
             decode_alu_src <= 0;
+            decode_imm <= 0;
+            decode_jump <= 0;
+            decode_jal_src <= 0;
         end
     endcase
 end

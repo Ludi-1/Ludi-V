@@ -1,7 +1,11 @@
+int function(int a, int b) {
+    return a + b;
+}
+
 int main(){
     int a = 5;
     int b = 11;
-    int c = a + b;
+    int c = function(a, b);
     return 0;
 }
 
