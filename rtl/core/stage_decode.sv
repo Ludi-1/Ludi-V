@@ -30,14 +30,15 @@ module stage_decode (
 
     // Writeback stage to registers
     output wire decode_wr_enable,
-    output wire decode_mem_to_reg,
+    output reg [1:0] decode_result_src,
     input wire [4:0] wb_wr_addr,
     input wire [31:0] wb_wr_data,
     input wire wb_wr_enable
 );
 
-always_ff @(posedge clk) begin : instr_addr
-end
+localparam [1:0]ALU_RESULT = 2'b00,
+                MEM_TO_REG = 2'b01,
+                   PC_PLUS = 2'b10;
 
 localparam [6:0]R_TYPE  = 7'b0110011,
                 I_TYPE  = 7'b0010011,
@@ -100,7 +101,7 @@ end
 always_ff @(posedge clk) begin
     if (flush) begin
         decode_wr_enable <= 0;
-        decode_mem_to_reg <= 0;
+        decode_result_src <= 0;
         decode_alu_src <= 0;
         decode_imm <= 0;
         decode_jump <= 0;
@@ -123,7 +124,7 @@ always_ff @(posedge clk) begin
         case (opcode)
             R_TYPE: begin
                 decode_wr_enable <= 1;
-                decode_mem_to_reg <= 0;
+                decode_result_src <= ALU_RESULT;
                 decode_alu_src <= 0;
                 decode_imm <= 0;
                 decode_jump <= 0;
@@ -131,7 +132,7 @@ always_ff @(posedge clk) begin
             end
             I_TYPE: begin
                 decode_wr_enable <= 1;
-                decode_mem_to_reg <= 0;
+                decode_result_src <= ALU_RESULT;
                 decode_alu_src <= 1;
                 decode_imm <= 32'(signed'(i_imm));
                 decode_jump <= 0;
@@ -139,15 +140,23 @@ always_ff @(posedge clk) begin
             end
             JAL: begin
                 decode_wr_enable <= 1;
-                decode_mem_to_reg <= 0;
+                decode_result_src <= PC_PLUS;
                 decode_alu_src <= 0; // dont care
                 decode_imm <= {12'b0, jal_imm};
                 decode_jump <= 1;
                 decode_jal_src <= 1; // JAL = 1, JALR = 0
             end
+            JALR: begin
+                decode_wr_enable <= 1;
+                decode_result_src <= PC_PLUS;
+                decode_alu_src <= 0;
+                decode_imm <= 0;
+                decode_jump <= 1;
+                decode_jal_src <= 0; // JAL = 1, JALR = 0
+            end
             default: begin
                 decode_wr_enable <= 0;
-                decode_mem_to_reg <= 0;
+                decode_result_src <= ALU_RESULT;
                 decode_alu_src <= 0;
                 decode_imm <= 0;
                 decode_jump <= 0;

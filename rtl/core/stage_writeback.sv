@@ -1,21 +1,29 @@
 module stage_writeback (
-    // input wire clk,
-
+    input wire clk,
     input wire [4:0] mem_rd,
-    output wire [4:0] wb_rd,
-    input wire mem_to_reg,
+    output reg [4:0] wb_rd,
+    input wire [1:0] mem_result_src,
     input wire [31:0] mem_alu_result,
     input wire [31:0] mem_read_data,
     output reg [31:0] wb_write_data,
     input wire [31:0] mem_instr_addr_plus,
-    output wire [31:0] wb_next_instr_addr,
     input wire mem_wr_enable,
     output reg wb_wr_enable
 );
 
-assign wb_write_data = mem_to_reg ? mem_read_data : mem_alu_result;
-assign wb_rd = mem_rd;
-assign wb_wr_enable = mem_wr_enable;
-assign wb_next_instr_addr = mem_instr_addr_plus;
+localparam [1:0]ALU_RESULT = 2'b00,
+                MEM_TO_REG = 2'b01,
+                   PC_PLUS = 2'b10;
+
+always_ff @(posedge clk) begin
+    case (mem_result_src)
+        ALU_RESULT: wb_write_data = mem_alu_result;
+        MEM_TO_REG: wb_write_data = mem_read_data;
+        PC_PLUS:    wb_write_data = mem_instr_addr_plus;
+        default:    wb_write_data = mem_alu_result;
+    endcase
+    wb_rd <= mem_rd;
+    wb_wr_enable <= mem_wr_enable;
+end
 
 endmodule

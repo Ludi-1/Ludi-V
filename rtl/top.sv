@@ -4,8 +4,7 @@ module top (
 );
 
 wire execute_pc_src, execute_jal_src, flush_fetch;
-wire [31:0] wb_next_instr_addr,
-            fetch_instr_addr_plus,
+wire [31:0] fetch_instr_addr_plus,
             branch_instr_addr,
             jal_instr_addr,
             jalr_instr_addr,
@@ -31,7 +30,8 @@ wire [4:0] decode_rd;
 wire [3:0] decode_alu_ctrl;
 wire [31:0] decode_instr_addr, decode_instr_addr_plus;
 
-wire decode_jump, decode_jal_src, decode_branch, decode_wr_enable, decode_mem_to_reg, decode_alu_src, wb_wr_enable, flush_decode;
+wire decode_jump, decode_jal_src, decode_branch, decode_wr_enable, decode_alu_src, wb_wr_enable, flush_decode;
+wire [1:0] decode_result_src;
 wire [31:0] wb_write_data;
 wire [4:0] wb_rd;
 wire [4:0] decode_shamt;
@@ -57,7 +57,7 @@ stage_decode decode (
     .decode_imm(decode_imm),
     .decode_alu_src(decode_alu_src),
     .decode_wr_enable(decode_wr_enable),
-    .decode_mem_to_reg(decode_mem_to_reg),
+    .decode_result_src(decode_result_src),
     .wb_wr_addr(wb_rd),
     .wb_wr_data(wb_write_data),
     .wb_wr_enable(wb_wr_enable)
@@ -65,7 +65,8 @@ stage_decode decode (
 
 wire [31:0] execute_instr_addr_plus, execute_alu_result, execute_next_instr_addr;
 wire [4:0] execute_rd;
-wire execute_branch, execute_wr_enable, execute_mem_to_reg;
+wire execute_branch, execute_wr_enable;
+wire [1:0] execute_result_src;
 
 stage_execute execute (
     .clk(clk),
@@ -80,7 +81,7 @@ stage_execute execute (
     .rs_data1(rs_data1),
     .rs_data2(rs_data2),
     .decode_wr_enable(decode_wr_enable),
-    .decode_mem_to_reg(decode_mem_to_reg),
+    .decode_result_src(decode_result_src),
     .execute_rd(execute_rd),
     .shamt(decode_shamt),
     .alu_ctrl(decode_alu_ctrl),
@@ -89,16 +90,18 @@ stage_execute execute (
     .execute_pc_src(execute_pc_src),
     .execute_branch(execute_branch),
     .jal_instr_addr(jal_instr_addr),
+    .jalr_instr_addr(jalr_instr_addr),
     .execute_next_instr_addr(execute_next_instr_addr),
     .execute_instr_addr_plus(execute_instr_addr_plus),
     .execute_alu_result(execute_alu_result),
     .execute_wr_enable(execute_wr_enable),
-    .execute_mem_to_reg(execute_mem_to_reg)
+    .execute_result_src(execute_result_src)
 );
 
 wire [4:0] mem_rd;
 wire [31:0] mem_read_data, mem_alu_result, mem_instr_addr_plus;
-wire mem_wr_enable, mem_mem_to_reg;
+wire mem_wr_enable;
+wire [1:0] mem_result_src;
 
 stage_memory mem (
     .clk(clk),
@@ -109,18 +112,17 @@ stage_memory mem (
     .execute_alu_result(execute_alu_result),
     .mem_alu_result(mem_alu_result),
     .execute_wr_enable(execute_wr_enable),
-    .execute_mem_to_reg(execute_mem_to_reg),
+    .execute_result_src(execute_result_src),
     .mem_wr_enable(mem_wr_enable),
-    .mem_mem_to_reg(mem_mem_to_reg)
+    .mem_result_src(mem_result_src)
 );
 
 stage_writeback wb (
-    // .clk(clk),
+    .clk(clk),
     .mem_rd(mem_rd),
     .wb_rd(wb_rd),
     .mem_instr_addr_plus(mem_instr_addr_plus),
-    .wb_next_instr_addr(wb_next_instr_addr),
-    .mem_to_reg(mem_mem_to_reg),
+    .mem_result_src(mem_result_src),
     .mem_alu_result(mem_alu_result),
     .mem_read_data(mem_read_data),
     .wb_write_data(wb_write_data),

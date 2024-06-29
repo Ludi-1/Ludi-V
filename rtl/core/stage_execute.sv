@@ -12,6 +12,7 @@ module stage_execute (
     output reg execute_branch, // TODO
 
     output reg [31:0] jal_instr_addr,
+    output reg [31:0] jalr_instr_addr,
 
     input wire [31:0] decode_instr_addr,
     output reg [31:0] execute_next_instr_addr,
@@ -30,9 +31,9 @@ module stage_execute (
 
     output reg [31:0] execute_alu_result,
     input wire decode_wr_enable,
-    input wire decode_mem_to_reg,
+    input wire [1:0] decode_result_src,
     output wire execute_wr_enable,
-    output wire execute_mem_to_reg
+    output wire [1:0] execute_result_src
 );
 
 wire [31:0] data1, data2;
@@ -88,7 +89,10 @@ always_ff @(posedge clk) begin
     jal_instr_addr <= (decode_imm << 1) + decode_instr_addr;
     execute_jal_src <= decode_jal_src;
     execute_pc_src <= decode_jump; // TODO: add branch
+    execute_result_src <= decode_result_src;
 end
+
+assign jalr_instr_addr = execute_alu_result;
 
 
 endmodule
