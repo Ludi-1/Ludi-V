@@ -16,19 +16,33 @@ reg [31:0] jump_addr, instr, instr_addr, next_instr_addr;
 assign jump_addr = jal_src ? jal_instr_addr : jalr_instr_addr;
 assign next_instr_addr = pc_src ? jump_addr : instr_addr + 4;
 
+always_ff @(posedge clk) begin : pc
+    if (rst) begin
+        instr_addr <= 0;
+    end else begin
+        instr_addr <= next_instr_addr;
+    end
+end
+
 instr_mem instr_mem1 (
     .address(instr_addr),
     .instr(instr)
 );
 
-always_ff @(posedge clk) begin : pc
-    fetch_instr_addr <= instr_addr;
-    fetch_instr_addr_plus <= instr_addr + 4;
-    fetch_instr <= flush_fetch ? 0 : instr;
+
+always_ff @(posedge clk) begin : fetch
     if (rst) begin
-        instr_addr <= 0;
+        fetch_instr_addr <= 0;
+        fetch_instr_addr_plus <= 0;
+        fetch_instr <= 0;
+    end else if (flush_fetch) begin
+        fetch_instr_addr <= 0;
+        fetch_instr_addr_plus <= 0;
+        fetch_instr <= 0;
     end else begin
-        instr_addr <= next_instr_addr;
+        fetch_instr_addr <= instr_addr;
+        fetch_instr_addr_plus <= instr_addr + 4;
+        fetch_instr <= instr;
     end
 end
 

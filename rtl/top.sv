@@ -11,7 +11,7 @@ wire [31:0] wb_next_instr_addr,
             jalr_instr_addr,
             fetch_instr_addr,
             fetch_instr;
-
+assign flush_fetch = execute_pc_src;
 stage_fetch fetch (
     .clk(clk),
     .rst(rst),
@@ -31,22 +31,24 @@ wire [4:0] decode_rd;
 wire [3:0] decode_alu_ctrl;
 wire [31:0] decode_instr_addr, decode_instr_addr_plus;
 
-wire decode_jump, decode_jal_src, decode_branch, decode_wr_enable, decode_mem_to_reg, decode_alu_src, wb_wr_enable;
+wire decode_jump, decode_jal_src, decode_branch, decode_wr_enable, decode_mem_to_reg, decode_alu_src, wb_wr_enable, flush_decode;
 wire [31:0] wb_write_data;
 wire [4:0] wb_rd;
 wire [4:0] decode_shamt;
+assign flush_decode = execute_pc_src;
 
 stage_decode decode (
     .clk(clk),
     .rst(rst),
+    .flush(flush_decode),
     .fetch_instr_addr(fetch_instr_addr),
     .fetch_instr_addr_plus(fetch_instr_addr_plus),
+    .instr(fetch_instr),
     .decode_instr_addr(decode_instr_addr),
     .decode_instr_addr_plus(decode_instr_addr_plus),
     .decode_jump(decode_jump),
     .decode_jal_src(decode_jal_src),
     .decode_branch(decode_branch),
-    .instr(fetch_instr),
     .rs_data1(rs_data1),
     .rs_data2(rs_data2),
     .decode_rd(decode_rd),
@@ -68,29 +70,28 @@ wire execute_branch, execute_wr_enable, execute_mem_to_reg;
 stage_execute execute (
     .clk(clk),
     .decode_rd(decode_rd),
-    .execute_rd(execute_rd),
-
     .decode_jump(decode_jump),
     .decode_jal_src(decode_jal_src),
     .decode_branch(decode_branch),
-    .execute_jal_src(execute_jal_src),
-    .execute_pc_src(execute_pc_src),
-    .execute_branch(execute_branch),
-    .jal_instr_addr(jal_instr_addr),
     .decode_instr_addr(decode_instr_addr),
-    .execute_next_instr_addr(execute_next_instr_addr),
     .decode_instr_addr_plus(decode_instr_addr_plus),
-    .execute_instr_addr_plus(execute_instr_addr_plus),
-
     .decode_alu_src(decode_alu_src),
     .decode_imm(decode_imm),
     .rs_data1(rs_data1),
     .rs_data2(rs_data2),
-    .shamt(decode_shamt),
-    .alu_ctrl(decode_alu_ctrl),
-    .execute_alu_result(execute_alu_result),
     .decode_wr_enable(decode_wr_enable),
     .decode_mem_to_reg(decode_mem_to_reg),
+    .execute_rd(execute_rd),
+    .shamt(decode_shamt),
+    .alu_ctrl(decode_alu_ctrl),
+
+    .execute_jal_src(execute_jal_src),
+    .execute_pc_src(execute_pc_src),
+    .execute_branch(execute_branch),
+    .jal_instr_addr(jal_instr_addr),
+    .execute_next_instr_addr(execute_next_instr_addr),
+    .execute_instr_addr_plus(execute_instr_addr_plus),
+    .execute_alu_result(execute_alu_result),
     .execute_wr_enable(execute_wr_enable),
     .execute_mem_to_reg(execute_mem_to_reg)
 );
