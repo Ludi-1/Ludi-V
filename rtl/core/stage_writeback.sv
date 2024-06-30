@@ -15,8 +15,8 @@ localparam [1:0]ALU_RESULT = 2'b00,
                 MEM_TO_REG = 2'b01,
                    PC_PLUS = 2'b10;
 
-// always_ff @(posedge clk) begin
-always_comb begin
+always_ff @(posedge clk) begin
+// always_comb begin
     case (mem_result_src)
         ALU_RESULT: wb_write_data = mem_alu_result;
         MEM_TO_REG: wb_write_data = mem_read_data;

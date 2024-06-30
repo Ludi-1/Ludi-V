@@ -35,18 +35,16 @@ assign datamem_data = execute_wr_datamem_data;
 
 always_ff @(posedge clk) begin
     if (execute_datamem_wr_enable) begin
+        data_memory[data_mem_addr] <= datamem_data[7:0];
         case (execute_funct3[1:0])
             2'b01: begin
-                data_memory[data_mem_addr] <= datamem_data[7:0];
                 data_memory[data_mem_addr+1] <= datamem_data[15:8];
             end
             2'b10: begin
-                data_memory[data_mem_addr] <= datamem_data[7:0];
                 data_memory[data_mem_addr+1] <= datamem_data[15:8];
                 data_memory[data_mem_addr+2] <= datamem_data[23:16];
                 data_memory[data_mem_addr+3] <= datamem_data[31:24];
             end
-            default: data_memory[data_mem_addr] <= datamem_data[7:0];
         endcase
     end
     case (execute_funct3)

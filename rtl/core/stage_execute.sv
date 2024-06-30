@@ -148,7 +148,7 @@ always_ff @(posedge clk) begin
 
     execute_funct3 <= decode_funct3;
     execute_datamem_wr_enable <= decode_datamem_wr_enable;
-    execute_wr_datamem_data = datamem_data;
+    execute_wr_datamem_data <= datamem_data;
     execute_instr_addr_plus <= decode_instr_addr_plus;
     execute_rd <= decode_rd;
     execute_regfile_wr_enable <= decode_regfile_wr_enable;
