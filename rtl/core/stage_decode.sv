@@ -1,7 +1,6 @@
 module stage_decode (
     input wire clk,
     input wire rst,
-
     input wire flush,
 
     // Instruction to be decoded
@@ -16,11 +15,18 @@ module stage_decode (
     output reg [31:0] rs_data1,
     output reg [31:0] rs_data2,
 
-    // rd, funct3, imm
+    output reg decode_datamem_wr_enable,
+
     output reg [4:0] decode_rd, // rd towards writeback
-    output reg [3:0] decode_alu_ctrl, // alu ctrl
+    output reg [4:0] decode_rs1,
+    output reg [4:0] decode_rs2,
+
+    // decode ctrl
+    output reg [1:0] decode_alu_op, // alu op
+    output reg [2:0] decode_funct3,
+    output reg decode_funct7b5,
     output reg [4:0] decode_shamt, // shift amount
-    output reg [31:0] decode_imm,
+    output reg [31:0] decode_imm, // select imm value for ALU
 
     output reg decode_jump,
     output reg decode_jal_src,
@@ -29,11 +35,11 @@ module stage_decode (
     output reg decode_alu_src, // alu imm or rs data
 
     // Writeback stage to registers
-    output wire decode_wr_enable,
+    output reg decode_regfile_wr_enable,
     output reg [1:0] decode_result_src,
     input wire [4:0] wb_wr_addr,
     input wire [31:0] wb_wr_data,
-    input wire wb_wr_enable
+    input wire wb_regfile_wr_enable
 );
 
 localparam [1:0]ALU_RESULT = 2'b00,
@@ -55,8 +61,7 @@ wire [2:0] funct3;
 wire [4:0] rd, rs1, rs2;
 wire [6:0] funct7;
 wire [11:0] i_imm;
-wire [4:0] s_imm1;
-wire [6:0] s_imm2;
+wire [11:0] s_imm;
 wire [4:0] shamt;
 wire [19:0] jal_imm;
 wire alu_op;
@@ -68,14 +73,12 @@ assign rs2 = instr[24:20];
 assign rd = instr[11:7];
 assign funct7 = instr[31:25];
 assign i_imm = instr[31:20];
-assign s_imm1 = instr[11:7];
-assign s_imm2 = instr[31:25];
 assign jal_imm = {instr[31], instr[19:12], instr[20], instr[30:21]};
+assign s_imm = {instr[31:25], instr[11:7]};
 assign shamt = instr[24:20]; // shift amount
 assign alu_op = instr[30];
 
 reg [31:0] regfile [31:0];
-assign regfile[0] = 0;
 reg [4:0] rs_addr1, rs_addr2, wr_addr;
 reg [31:0] wr_data;
 wire wr_enable;
@@ -84,9 +87,10 @@ assign rs_addr1 = rs1;
 assign rs_addr2 = rs2;
 assign wr_addr = wb_wr_addr;
 assign wr_data = wb_wr_data;
-assign wr_enable = wb_wr_enable;
+assign wr_enable = wb_regfile_wr_enable;
 
 always_ff @(posedge clk) begin: register_file
+    regfile[0] <= 0;
     if (rst) begin
         for(int i = 0; i < 32; i++) begin
             regfile[i] <= 0;
@@ -100,7 +104,7 @@ end
 
 always_ff @(posedge clk) begin
     if (flush) begin
-        decode_wr_enable <= 0;
+        decode_regfile_wr_enable <= 0;
         decode_result_src <= 0;
         decode_alu_src <= 0;
         decode_imm <= 0;
@@ -109,66 +113,101 @@ always_ff @(posedge clk) begin
         rs_data1 <= 0;
         rs_data2 <= 0;
         decode_rd <= 0;
-        decode_alu_ctrl <= 0;
+        decode_alu_op <= 0;
+        decode_funct3 <= 0;
+        decode_funct7b5 <= 0;
         decode_shamt <= shamt;
         decode_instr_addr <= 0;
-        decode_instr_addr_plus <= 0;  
+        decode_instr_addr_plus <= 0;
+        decode_rs1 <= 0;
+        decode_rs2 <= 0;
     end else begin
         decode_instr_addr <= fetch_instr_addr;
         decode_instr_addr_plus <= fetch_instr_addr_plus;  
         rs_data1 <= regfile[rs_addr1];
         rs_data2 <= regfile[rs_addr2];
         decode_rd <= rd;
-        decode_alu_ctrl <= {alu_op, funct3};
+        decode_funct3 <= funct3;
+        decode_funct7b5 <= funct7[5];
         decode_shamt <= shamt;
+        decode_rs1 <= rs1;
+        decode_rs2 <= rs2;
         case (opcode)
             R_TYPE: begin
-                decode_wr_enable <= 1;
+                decode_regfile_wr_enable <= 1;
                 decode_result_src <= ALU_RESULT;
                 decode_alu_src <= 0;
                 decode_imm <= 0;
                 decode_jump <= 0;
                 decode_jal_src <= 0;
+                decode_datamem_wr_enable <= 0;
+                decode_alu_op <= 2'b10;
             end
             I_TYPE: begin
-                decode_wr_enable <= 1;
+                decode_regfile_wr_enable <= 1;
                 decode_result_src <= ALU_RESULT;
                 decode_alu_src <= 1;
-                decode_imm <= 32'(signed'(i_imm));
+                decode_imm <= {{20{i_imm[11]}}, i_imm};
                 decode_jump <= 0;
                 decode_jal_src <= 0;
+                decode_datamem_wr_enable <= 0;
+                decode_alu_op <= 2'b10;
             end
             JAL: begin
-                decode_wr_enable <= 1;
+                decode_regfile_wr_enable <= 1;
                 decode_result_src <= PC_PLUS;
                 decode_alu_src <= 0; // dont care
-                decode_imm <= {12'b0, jal_imm};
+                decode_imm <= {{20{jal_imm[19]}}, jal_imm};
                 decode_jump <= 1;
                 decode_jal_src <= 1; // JAL = 1, JALR = 0
+                decode_datamem_wr_enable <= 0;
+                decode_alu_op <= 2'b00;
             end
             JALR: begin
-                decode_wr_enable <= 1;
+                decode_regfile_wr_enable <= 1;
                 decode_result_src <= PC_PLUS;
                 decode_alu_src <= 0;
                 decode_imm <= 0;
                 decode_jump <= 1;
                 decode_jal_src <= 0; // JAL = 1, JALR = 0
+                decode_datamem_wr_enable <= 0;
+                decode_alu_op <= 2'b00;
+            end
+            STORE: begin
+                decode_regfile_wr_enable <= 0;
+                decode_result_src <= ALU_RESULT; // dont care
+                decode_alu_src <= 1;
+                decode_imm <= {{20{s_imm[11]}}, s_imm};
+                decode_jump <= 0;
+                decode_jal_src <= 0; // dont care
+                decode_datamem_wr_enable <= 1;
+                decode_alu_op <= 2'b00;
+            end
+            LOAD: begin
+                decode_regfile_wr_enable <= 1;
+                decode_result_src <= MEM_TO_REG;
+                decode_alu_src <= 1;
+                decode_imm <= {{20{i_imm[11]}}, i_imm};
+                decode_jump <= 0;
+                decode_jal_src <= 0; // dont care
+                decode_datamem_wr_enable <= 0;
+                decode_alu_op <= 2'b00;
             end
             default: begin
-                decode_wr_enable <= 0;
+                decode_regfile_wr_enable <= 0;
                 decode_result_src <= ALU_RESULT;
                 decode_alu_src <= 0;
                 decode_imm <= 0;
                 decode_jump <= 0;
                 decode_jal_src <= 0;
+                decode_datamem_wr_enable <= 0;
+                decode_alu_op <= 2'b00;
             end
         endcase
     end
 end
 
-// always_comb begin : rd_data
-//     rd_data1 <= regfile[rd_addr1];
-//     rd_data2 <= regfile[rd_addr2];
-// end
-
+initial begin
+    for (integer i = 0; i < 32; i = i + 1) $dumpvars(0, regfile[i]);
+end
 endmodule

@@ -31,11 +31,7 @@ instr_mem instr_mem1 (
 
 
 always_ff @(posedge clk) begin : fetch
-    if (rst) begin
-        fetch_instr_addr <= 0;
-        fetch_instr_addr_plus <= 0;
-        fetch_instr <= 0;
-    end else if (flush_fetch) begin
+    if (rst | flush_fetch) begin
         fetch_instr_addr <= 0;
         fetch_instr_addr_plus <= 0;
         fetch_instr <= 0;

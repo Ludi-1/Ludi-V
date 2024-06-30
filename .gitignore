@@ -8,3 +8,4 @@ vcd
 *.elf
 *.hex
 *.fst
+*.vcd

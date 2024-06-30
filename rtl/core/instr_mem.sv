@@ -12,8 +12,8 @@ module instr_mem (
     end
 
     // Read instruction from memory based on address
-    always @(address) begin
-        instr <= {mem[address+3], mem[address+2], mem[address+1], mem[address]};
+    always_comb begin
+        instr = {mem[address+3], mem[address+2], mem[address+1], mem[address]};
     end
 
 endmodule
