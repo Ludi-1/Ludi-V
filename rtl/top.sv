@@ -10,7 +10,7 @@ wire [31:0] fetch_instr_addr_plus,
             jalr_instr_addr,
             fetch_instr_addr,
             fetch_instr;
-assign flush_fetch = decode_jump;
+assign flush_fetch = execute_pc_src;
 stage_fetch fetch (
     .clk(clk),
     .rst(rst),
@@ -48,7 +48,7 @@ wire [1:0] mem_result_src;
 
 wire [31:0] execute_instr_addr_plus, execute_alu_result;
 wire [4:0] execute_rd;
-wire execute_branch, execute_regfile_wr_enable;
+wire execute_regfile_wr_enable;
 wire [31:0] execute_wr_datamem_data;
 
 stage_decode decode (
@@ -120,7 +120,6 @@ stage_execute execute (
     .execute_instr_addr_plus(execute_instr_addr_plus),
 
     .decode_branch(decode_branch),
-    .execute_branch(execute_branch),
 
     .decode_alu_src(decode_alu_src),
     .decode_imm(decode_imm),

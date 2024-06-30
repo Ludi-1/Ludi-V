@@ -5,7 +5,12 @@ int function(int a, int b) {
 int main(){
     int a = 5;
     int b = 11;
-    int c = function(a, b);
+    int c;
+    if (b > a) {
+        c = function(a, b);
+    } else {
+        c = 3;
+    }
     return 0;
 }
 

@@ -62,6 +62,7 @@ wire [4:0] rd, rs1, rs2;
 wire [6:0] funct7;
 wire [11:0] i_imm;
 wire [11:0] s_imm;
+wire [11:0] b_imm;
 wire [4:0] shamt;
 wire [19:0] jal_imm;
 wire alu_op;
@@ -75,6 +76,7 @@ assign funct7 = instr[31:25];
 assign i_imm = instr[31:20];
 assign jal_imm = {instr[31], instr[19:12], instr[20], instr[30:21]};
 assign s_imm = {instr[31:25], instr[11:7]};
+assign b_imm = {instr[31], instr[7], instr[30:25], instr[11:8]};
 assign shamt = instr[24:20]; // shift amount
 assign alu_op = instr[30];
 
@@ -139,6 +141,7 @@ always_ff @(posedge clk) begin
                 decode_alu_src <= 0;
                 decode_imm <= 0;
                 decode_jump <= 0;
+                decode_branch <= 0;
                 decode_jal_src <= 0;
                 decode_datamem_wr_enable <= 0;
                 decode_alu_op <= 2'b10;
@@ -149,6 +152,7 @@ always_ff @(posedge clk) begin
                 decode_alu_src <= 1;
                 decode_imm <= {{20{i_imm[11]}}, i_imm};
                 decode_jump <= 0;
+                decode_branch <= 0;
                 decode_jal_src <= 0;
                 decode_datamem_wr_enable <= 0;
                 decode_alu_op <= 2'b10;
@@ -159,6 +163,7 @@ always_ff @(posedge clk) begin
                 decode_alu_src <= 0; // dont care
                 decode_imm <= {{20{jal_imm[19]}}, jal_imm};
                 decode_jump <= 1;
+                decode_branch <= 0;
                 decode_jal_src <= 1; // JAL = 1, JALR = 0
                 decode_datamem_wr_enable <= 0;
                 decode_alu_op <= 2'b00;
@@ -169,6 +174,7 @@ always_ff @(posedge clk) begin
                 decode_alu_src <= 0;
                 decode_imm <= 0;
                 decode_jump <= 1;
+                decode_branch <= 0;
                 decode_jal_src <= 0; // JAL = 1, JALR = 0
                 decode_datamem_wr_enable <= 0;
                 decode_alu_op <= 2'b00;
@@ -179,6 +185,7 @@ always_ff @(posedge clk) begin
                 decode_alu_src <= 1;
                 decode_imm <= {{20{s_imm[11]}}, s_imm};
                 decode_jump <= 0;
+                decode_branch <= 0;
                 decode_jal_src <= 0; // dont care
                 decode_datamem_wr_enable <= 1;
                 decode_alu_op <= 2'b00;
@@ -189,9 +196,21 @@ always_ff @(posedge clk) begin
                 decode_alu_src <= 1;
                 decode_imm <= {{20{i_imm[11]}}, i_imm};
                 decode_jump <= 0;
+                decode_branch <= 0;
                 decode_jal_src <= 0; // dont care
                 decode_datamem_wr_enable <= 0;
                 decode_alu_op <= 2'b00;
+            end
+            BRANCH: begin
+                decode_regfile_wr_enable <= 0;
+                decode_result_src <= ALU_RESULT; // dont care
+                decode_alu_src <= 0;
+                decode_imm <= {{20{b_imm[11]}}, b_imm};
+                decode_jump <= 0;
+                decode_branch <= 1;
+                decode_jal_src <= 1;
+                decode_datamem_wr_enable <= 0;
+                decode_alu_op <= 2'b01;
             end
             default: begin
                 decode_regfile_wr_enable <= 0;
@@ -199,6 +218,7 @@ always_ff @(posedge clk) begin
                 decode_alu_src <= 0;
                 decode_imm <= 0;
                 decode_jump <= 0;
+                decode_branch <= 0;
                 decode_jal_src <= 0;
                 decode_datamem_wr_enable <= 0;
                 decode_alu_op <= 2'b00;
