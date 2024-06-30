@@ -13,15 +13,16 @@ module stage_writeback (
 
 localparam [1:0]ALU_RESULT = 2'b00,
                 MEM_TO_REG = 2'b01,
-                   PC_PLUS = 2'b10;
+                   PC_PLUS = 2'b10,
+                LUI_AUIPC  = 2'b11;
 
 always_ff @(posedge clk) begin
 // always_comb begin
     case (mem_result_src)
-        ALU_RESULT: wb_write_data = mem_alu_result;
-        MEM_TO_REG: wb_write_data = mem_read_data;
-        PC_PLUS:    wb_write_data = mem_instr_addr_plus;
-        default:    wb_write_data = mem_alu_result;
+        ALU_RESULT | LUI_AUIPC: wb_write_data = mem_alu_result;
+                    MEM_TO_REG: wb_write_data = mem_read_data;
+                    PC_PLUS:    wb_write_data = mem_instr_addr_plus;
+                    default:    wb_write_data = mem_alu_result;
     endcase
     wb_rd = mem_rd;
     wb_regfile_wr_enable = mem_regfile_wr_enable;

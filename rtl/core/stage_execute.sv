@@ -43,15 +43,14 @@ module stage_execute (
     input wire [31:0] rs_data1,
     input wire [31:0] rs_data2,
 
-    // shift amount (RS12)
-    input wire [4:0] shamt,
-
     // ALU operation
     input wire [1:0] decode_alu_op, // alu op
     input wire [2:0] decode_funct3,
     input wire decode_funct7b5,
-
     output reg [2:0] execute_funct3,
+
+    // LUI or AUIPC
+    input wire decode_lui_auipc,
 
     // regfile write enable passthrough
     input wire decode_regfile_wr_enable,
@@ -65,6 +64,11 @@ module stage_execute (
     output reg [31:0] execute_wr_datamem_data,
     output reg [31:0] execute_alu_result
 );
+
+localparam [1:0]ALU_RESULT = 2'b00,
+                MEM_TO_REG = 2'b01,
+                   PC_PLUS = 2'b10,
+                LUI_AUIPC  = 2'b11;
 
 reg [31:0] data1, data2, datamem_data;
 wire signed [31:0] signed_data1, signed_data2;
@@ -167,7 +171,12 @@ always_ff @(posedge clk) begin
     execute_rd <= decode_rd;
     execute_regfile_wr_enable <= decode_regfile_wr_enable;
     execute_result_src <= decode_result_src;
-    execute_alu_result <= alu_result;
+    if (decode_result_src == LUI_AUIPC && ~decode_lui_auipc) // LUI
+        execute_alu_result <= decode_imm;
+    else if (decode_result_src == LUI_AUIPC && decode_lui_auipc) // AUIPC
+        execute_alu_result <= decode_imm + decode_instr_addr;
+    else
+        execute_alu_result <= alu_result;
 end
 
 assign jal_instr_addr = (decode_imm << 1) + decode_instr_addr;

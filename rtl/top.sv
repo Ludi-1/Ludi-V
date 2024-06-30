@@ -34,7 +34,6 @@ wire [31:0] decode_instr_addr, decode_instr_addr_plus;
 
 wire decode_jump, decode_jal_src, decode_branch, decode_regfile_wr_enable, decode_alu_src, wb_regfile_wr_enable, flush_decode;
 wire [31:0] wb_write_data;
-wire [4:0] decode_shamt;
 assign flush_decode = decode_jump;
 
 wire decode_datamem_wr_enable, execute_datamem_wr_enable;
@@ -75,7 +74,6 @@ stage_decode decode (
     .decode_alu_op(decode_alu_op),
     .decode_funct3(decode_funct3),
     .decode_funct7b5(decode_funct7b5),
-    .decode_shamt(decode_shamt),
     .decode_imm(decode_imm),
 
     .decode_jump(decode_jump),
@@ -126,8 +124,6 @@ stage_execute execute (
 
     .rs_data1(decode_rs_data1),
     .rs_data2(decode_rs_data2),
-
-    .shamt(decode_shamt),
 
     .decode_alu_op(decode_alu_op),
     .decode_funct3(decode_funct3),
