@@ -1,12 +1,11 @@
 # Makefile for rtl/axi_lite_impl
 
 # defaults
-SIM = verilator
+SIM = icarus
 TOPLEVEL_LANG = verilog
 PWD=$(shell pwd)
 WAVES=1
-EXTRA_ARGS += --trace-fst --trace-structs
-EXTRA_ARGS += --trace --trace-structs
+# EXTRA_ARGS += --trace-fst --trace-structs
 
 $(shell mkdir -p vcd)
 
