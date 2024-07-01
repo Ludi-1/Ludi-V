@@ -28,12 +28,9 @@ module stage_memory (
 );
 
 reg [7:0] data_memory [127:0]; // 128 B data mem
-// wire [6:0] data_mem_addr_0, data_mem_addr_1, data_mem_addr_2, data_mem_addr_3; // log2(128)
-// wire [31:0] datamem_data;
-wire [31:0] data_mem_addr_0, data_mem_addr_1, data_mem_addr_2, data_mem_addr_3; // log2(128)
 wire [31:0] datamem_data;
-// assign data_mem_addr_0 = execute_alu_result[6:0];
-assign data_mem_addr_0 = execute_alu_result[31:0];
+wire [6:0] data_mem_addr_0, data_mem_addr_1, data_mem_addr_2, data_mem_addr_3; // log2(128)
+assign data_mem_addr_0 = execute_alu_result[6:0];
 assign data_mem_addr_1 = data_mem_addr_0 + 1;
 assign data_mem_addr_2 = data_mem_addr_0 + 2;
 assign data_mem_addr_3 = data_mem_addr_0 + 3;
