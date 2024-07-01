@@ -8,10 +8,10 @@ async def stage_fetch_test(dut):
     clock = Clock(dut.clk, 5, units="ns")  # Create a 4ns clock period
     cocotb.start_soon(clock.start())  # Start the clock
 
-    dut.rst.value = 1
+    dut.rstn.value = 0
     await RisingEdge(dut.clk)
     await RisingEdge(dut.clk)
-    dut.rst.value = 0
+    dut.rstn.value = 1
 
     for _ in range(256):
         await RisingEdge(dut.clk)

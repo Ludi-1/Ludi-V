@@ -1,6 +1,8 @@
-module stage_decode (
+module stage_decode #(
+    parameter STACK_ADDR = 32'h0000_03FF
+) (
     input wire clk,
-    input wire rst,
+    input wire rstn,
     input wire flush,
 
     // Instruction to be decoded
@@ -92,10 +94,14 @@ assign wr_enable = wb_regfile_wr_enable;
 
 always_ff @(posedge clk) begin: register_file
     regfile[0] <= 0;
-    if (rst) begin
+    if (~rstn) begin
         for(int i = 0; i < 32; i++) begin
-            regfile[i] <= 0;
+            if (i == 2)
+                regfile[i] <= STACK_ADDR;
+            else
+                regfile[i] <= 0;
         end
+        regfile[2] <= STACK_ADDR;
     end else if (wr_enable) begin
         if (wr_addr > 0) begin
             regfile[wr_addr] <= wr_data;

@@ -1,7 +1,66 @@
 module top (
     input wire clk,
-    input wire rst
+    input wire rstn,
+
+    input wire uart_rxd,
+    output wire uart_txd
 );
+
+`ifdef COCOTB_SIM
+initial
+begin
+   $dumpfile("dump.vcd");
+   $dumpvars(0,top);
+end
+
+`else
+
+// mig_7series_0 mig_ddr (
+//     .sys_rst(rstn),
+//     .aresetn(rstn)
+// );
+
+`endif
+
+localparam UART_DATA_WIDTH = 8;
+wire uart_tx_busy, uart_rx_busy, uart_rx_overrun_error, uart_rx_frame_error;
+wire [UART_DATA_WIDTH-1:0] uart_s_axis_tdata, uart_m_axis_tdata;
+wire uart_s_axis_tvalid, uart_s_axis_tready, uart_m_axis_tvalid, uart_m_axis_tready;
+
+// axi_crossbar #(
+//     .S_COUNT(1),
+//     .M_COUNT(1),
+//     .DATA_WIDTH(32),
+//     .ADDR_WIDTH(32),
+// ) axi_crossbar_inst (
+//     .clk(clk),
+//     .rst(~rstn),
+// );
+
+// uart #(
+//     .DATA_WIDTH(UART_DATA_WIDTH)
+// ) uart_axi (
+//     .clk(clk),
+//     .rst(~rstn),
+
+//     .s_axis_tdata(uart_s_axis_tdata),
+//     .s_axis_tvalid(uart_s_axis_tvalid),
+//     .s_axis_tready(uart_s_axis_tready),
+
+//     .m_axis_tdata(uart_m_axis_tdata),
+//     .m_axis_tvalid(uart_m_axis_tvalid),
+//     .m_axis_tready(uart_m_axis_tready),
+
+//     .rxd(uart_rxd),
+//     .txd(uart_txd),
+
+//     .tx_busy(uart_tx_busy),
+//     .rx_busy(uart_rx_busy),
+//     .rx_overrun_error(uart_rx_overrun_error),
+//     .rx_frame_error(uart_rx_frame_error),
+
+//     .prescale(109) // Fclk / (baud*8) = 108.507
+// );
 
 wire execute_pc_src, execute_jal_src, flush_fetch;
 wire [31:0] fetch_instr_addr_plus,
@@ -12,7 +71,7 @@ wire [31:0] fetch_instr_addr_plus,
 assign flush_fetch = execute_pc_src;
 stage_fetch fetch (
     .clk(clk),
-    .rst(rst),
+    .rstn(rstn),
     .pc_src(execute_pc_src),
     .jal_src(execute_jal_src),
     .jalr_instr_addr(jalr_instr_addr),
@@ -49,7 +108,7 @@ wire [31:0] execute_wr_datamem_data;
 
 stage_decode decode (
     .clk(clk),
-    .rst(rst),
+    .rstn(rstn),
     .flush(flush_decode),
 
     .instr(fetch_instr),
@@ -179,11 +238,4 @@ stage_writeback wb (
     .wb_regfile_wr_enable(wb_regfile_wr_enable)
 );
 
-`ifdef COCOTB_SIM
-initial
-begin
-   $dumpfile("dump.vcd");
-   $dumpvars(0,top);
-end
-`endif
 endmodule
