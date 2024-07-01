@@ -5,7 +5,6 @@ module stage_fetch (
     input wire jal_src,
     input wire flush_fetch,
     output reg [31:0] fetch_instr_addr_plus,
-    input wire [31:0] branch_instr_addr,
     input wire [31:0] jalr_instr_addr,
     input wire [31:0] jal_instr_addr,
     output reg [31:0] fetch_instr_addr,

@@ -5,7 +5,6 @@ module top (
 
 wire execute_pc_src, execute_jal_src, flush_fetch;
 wire [31:0] fetch_instr_addr_plus,
-            branch_instr_addr,
             jal_instr_addr,
             jalr_instr_addr,
             fetch_instr_addr,
@@ -20,7 +19,6 @@ stage_fetch fetch (
     .jal_instr_addr(jal_instr_addr),
     .flush_fetch(flush_fetch),
     .fetch_instr_addr_plus(fetch_instr_addr_plus),
-    .branch_instr_addr(branch_instr_addr),
     .fetch_instr_addr(fetch_instr_addr),
     .fetch_instr(fetch_instr)
 );
@@ -37,7 +35,6 @@ wire [31:0] wb_write_data;
 assign flush_decode = decode_jump;
 
 wire decode_datamem_wr_enable, execute_datamem_wr_enable;
-wire [1:0] decode_datamem_wr_strb, execute_datamem_wr_strb;
 wire [1:0] decode_result_src, execute_result_src;
 
 wire [4:0] mem_rd;
@@ -81,6 +78,7 @@ stage_decode decode (
     .decode_branch(decode_branch),
 
     .decode_alu_src(decode_alu_src),
+    .decode_lui_auipc(decode_lui_auipc),
 
     .decode_regfile_wr_enable(decode_regfile_wr_enable),
     .decode_result_src(decode_result_src),
@@ -130,6 +128,7 @@ stage_execute execute (
     .decode_funct7b5(decode_funct7b5),
 
     .execute_funct3(execute_funct3),
+    .decode_lui_auipc(decode_lui_auipc),
 
     .decode_regfile_wr_enable(decode_regfile_wr_enable),
     .execute_regfile_wr_enable(execute_regfile_wr_enable),
@@ -180,10 +179,11 @@ stage_writeback wb (
     .wb_regfile_wr_enable(wb_regfile_wr_enable)
 );
 
+`ifdef COCOTB_SIM
 initial
 begin
    $dumpfile("dump.vcd");
    $dumpvars(0,top);
 end
-
+`endif
 endmodule

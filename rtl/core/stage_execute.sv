@@ -72,13 +72,13 @@ localparam [1:0]ALU_RESULT = 2'b00,
 
 reg [31:0] data1, data2, datamem_data;
 wire signed [31:0] signed_data1, signed_data2;
-wire slt, sltu, sgte, zero, sign, execute_branch;
+wire slt, sltu, sgte, zero, execute_branch;
 reg [31:0] alu_result;
 wire [31:0] add, sub, alu_or, alu_and, alu_xor, sll, srl, sra;
 reg branch;
 
 assign zero = alu_result == 0;
-assign sign = alu_result[31];
+// assign sign = alu_result[31];
 assign execute_branch = branch && decode_branch;
 
 always_comb begin

@@ -60,26 +60,24 @@ localparam [6:0]R_TYPE  = 7'b0110011,
 wire [6:0] opcode;
 wire [2:0] funct3;
 wire [4:0] rd, rs1, rs2;
-wire [6:0] funct7;
+wire funct7b5;
 wire [11:0] i_imm;
 wire [11:0] s_imm;
 wire [11:0] b_imm;
 wire [19:0] lui_auipc_imm;
 wire [19:0] jal_imm;
-wire alu_op;
 
 assign opcode = instr[6:0];
 assign funct3 = instr[14:12];
 assign rs1 = instr[19:15];
 assign rs2 = instr[24:20];
 assign rd = instr[11:7];
-assign funct7 = instr[31:25];
+assign funct7b5 = instr[30];
 assign i_imm = instr[31:20];
 assign jal_imm = {instr[31], instr[19:12], instr[20], instr[30:21]};
 assign s_imm = {instr[31:25], instr[11:7]};
 assign b_imm = {instr[31], instr[7], instr[30:25], instr[11:8]};
 assign lui_auipc_imm = instr[31:12];
-assign alu_op = instr[30];
 
 reg [31:0] regfile [31:0];
 reg [4:0] rs_addr1, rs_addr2, wr_addr;
@@ -112,6 +110,7 @@ always_ff @(posedge clk) begin
         decode_alu_src <= 0;
         decode_imm <= 0;
         decode_jump <= 0;
+        decode_branch <= 0;
         decode_jal_src <= 0;
         rs_data1 <= 0;
         rs_data2 <= 0;
@@ -124,6 +123,7 @@ always_ff @(posedge clk) begin
         decode_rs1 <= 0;
         decode_rs2 <= 0;
         decode_lui_auipc <= 0;
+        decode_datamem_wr_enable <= 0;
     end else begin
         decode_instr_addr <= fetch_instr_addr;
         decode_instr_addr_plus <= fetch_instr_addr_plus;  
@@ -131,7 +131,7 @@ always_ff @(posedge clk) begin
         rs_data2 <= regfile[rs_addr2];
         decode_rd <= rd;
         decode_funct3 <= funct3;
-        decode_funct7b5 <= funct7[5];
+        decode_funct7b5 <= funct7b5;
         decode_rs1 <= rs1;
         decode_rs2 <= rs2;
         case (opcode)
