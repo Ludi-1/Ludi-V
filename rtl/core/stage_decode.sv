@@ -259,7 +259,10 @@ always_ff @(posedge clk) begin
     end
 end
 
+`ifdef COCOTB_SIM
 initial begin
     for (integer i = 0; i < 32; i = i + 1) $dumpvars(0, regfile[i]);
 end
+`endif
+
 endmodule
