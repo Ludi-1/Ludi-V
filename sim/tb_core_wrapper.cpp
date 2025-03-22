@@ -42,8 +42,16 @@ int main(int argc, char** argv, char** env) {
     }
     m_trace->dump(sim_time);
     sim_time++;
+    if (sim_time < 5) {
+      // Zero coverage if still early in reset, otherwise toggles there may
+      // falsely indicate a signal is covered
+      VerilatedCov::zero();
+    }
   }
 
+  Verilated::mkdir("logs");
+  VerilatedCov::write("logs/coverage.dat");
+  
   m_trace->close();
   delete dut;
   exit(EXIT_SUCCESS);

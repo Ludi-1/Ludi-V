@@ -5,7 +5,7 @@ while getopts ":f:" opt; do
         mkdir -p runs
         rm -rf obj_dir
         rm waveform.vcd
-        verilator --trace --x-assign unique --x-initial unique -cc rtl/core/*.sv rtl/*.sv --top-module ${OPTARG} --exe sim/tb_${OPTARG}.cpp
+        verilator --trace --coverage --x-assign unique --x-initial unique -cc rtl/core/*.sv rtl/*.sv --top-module ${OPTARG} --exe sim/tb_${OPTARG}.cpp
         make -C obj_dir -f V${OPTARG}.mk V${OPTARG}
         ./obj_dir/V${OPTARG} +verilator+rand+reset+2
         surfer waveform.vcd

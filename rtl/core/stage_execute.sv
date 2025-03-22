@@ -1,70 +1,70 @@
 module stage_execute (
-  input wire clk,
+  input logic clk,
 
   // RD passthrough
-  input wire [4:0] decode_rd,
-  output reg [4:0] execute_rd,
+  input logic [4:0] decode_rd,
+  output logic [4:0] execute_rd,
 
   // forwarding
-  input wire [4:0] decode_rs1,
-  input wire [4:0] decode_rs2,
-  input wire [4:0] wb_rd,
-  input wire [4:0] mem_rd,
-  input wire [31:0] wb_write_data,
-  input wire [31:0] mem_alu_result,
-  input wire mem_regfile_wr_enable,
-  input wire wb_regfile_wr_enable,
+  input logic [4:0] decode_rs1,
+  input logic [4:0] decode_rs2,
+  input logic [4:0] wb_rd,
+  input logic [4:0] mem_rd,
+  input logic [31:0] wb_write_data,
+  input logic [31:0] mem_alu_result,
+  input logic mem_regfile_wr_enable,
+  input logic wb_regfile_wr_enable,
   input logic [1:0] mem_result_src,
   input logic [31:0] mem_read_data,
 
   // jump/branch src select passthrough to IF stage
-  output reg execute_pc_src,
+  output logic execute_pc_src,
 
   // JAL/JALR src select passthrough to IF stage
-  input wire decode_jump, // instr is a jump
-  input wire decode_jal_src, // 1 = JAL, 0 = JALR
-  output reg execute_jal_src,
+  input logic decode_jump, // instr is a jump
+  input logic decode_jal_src, // 1 = JAL, 0 = JALR
+  output logic execute_jal_src,
 
   // PC target
-  output reg [31:0] jal_instr_addr,
-  output reg [31:0] jalr_instr_addr,
-  input wire [31:0] decode_instr_addr,
+  output logic [31:0] jal_instr_addr,
+  output logic [31:0] jalr_instr_addr,
+  input logic [31:0] decode_instr_addr,
 
   // PC + 4 passthrough
-  input wire [31:0] decode_instr_addr_plus,
-  output reg [31:0] execute_instr_addr_plus,
+  input logic [31:0] decode_instr_addr_plus,
+  output logic [31:0] execute_instr_addr_plus,
 
   // Branch control
-  input wire decode_branch,
+  input logic decode_branch,
 
   // IMM or RS2
-  input wire decode_alu_src,
-  input wire [31:0] decode_imm,
+  input logic decode_alu_src,
+  input logic [31:0] decode_imm,
 
   // RS1 RS2 data
-  input wire [31:0] rs_data1,
-  input wire [31:0] rs_data2,
+  input logic [31:0] rs_data1,
+  input logic [31:0] rs_data2,
 
   // ALU operation
-  input wire [1:0] decode_alu_op, // alu op
-  input wire [2:0] decode_funct3,
-  input wire decode_funct7b5,
-  output reg [2:0] execute_funct3,
+  input logic [1:0] decode_alu_op, // alu op
+  input logic [2:0] decode_funct3,
+  input logic decode_funct7b5,
+  output logic [2:0] execute_funct3,
 
   // LUI or AUIPC
-  input wire decode_lui_auipc,
+  input logic decode_lui_auipc,
 
   // regfile write enable passthrough
-  input wire decode_regfile_wr_enable,
+  input logic decode_regfile_wr_enable,
   output reg execute_regfile_wr_enable,
 
   // data memory (passthrough)
-  input wire decode_datamem_wr_enable,
-  input wire [1:0] decode_result_src,
-  output reg execute_datamem_wr_enable,
-  output reg [1:0] execute_result_src,
-  output reg [31:0] execute_wr_datamem_data,
-  output reg [31:0] execute_alu_result
+  input logic decode_datamem_wr_enable,
+  input logic [1:0] decode_result_src,
+  output logic execute_datamem_wr_enable,
+  output logic [1:0] execute_result_src,
+  output logic [31:0] execute_wr_datamem_data,
+  output logic [31:0] execute_alu_result
 );
 
 localparam [1:0]ALU_RESULT = 2'b00,
@@ -72,14 +72,14 @@ localparam [1:0]ALU_RESULT = 2'b00,
                    PC_PLUS = 2'b10,
                 LUI_AUIPC  = 2'b11;
 
-reg [31:0] data1, data2, datamem_data;
-wire signed [31:0] signed_data1, signed_data2;
-wire slt, sltu, sgte, zero, execute_branch;
-reg [31:0] alu_result;
-wire [31:0] add, sub, alu_or, alu_and, alu_xor, sll, srl, sra;
-reg branch;
+logic [31:0] data1, data2, datamem_data;
+logic signed [31:0] signed_data1, signed_data2;
+logic slt, sltu, sgte, zero, execute_branch;
+logic [31:0] alu_result;
+logic [31:0] add, sub, alu_or, alu_and, alu_xor, sll, srl, sra;
+logic branch;
 
-assign zero = alu_result == 0;
+//assign zero = alu_result == 0;
 // assign sign = alu_result[31];
 assign execute_branch = branch && decode_branch;
 
@@ -155,6 +155,7 @@ end
 assign signed_data1 = $signed(data1);
 assign signed_data2 = $signed(data2);
 
+/*
 assign slt = signed_data1 < signed_data2;
 assign sltu = data1 < data2;
 assign sgte = data1 >= data2;
@@ -168,6 +169,24 @@ assign alu_xor = data1 ^ data2;
 assign sll = data1 << data2[4:0];
 assign srl = data1 >> data2[4:0];
 assign sra = data1 >>> data2[4:0];
+*/
+
+// TODO: these values should not be clocked
+always_ff @(posedge clk) begin
+  jalr_instr_addr <= add;
+  slt <= signed_data1 < signed_data2;
+  sltu <= data1 < data2;
+  sgte <= data1 >= data2;
+  add <= signed_data1 + signed_data2;
+  sub <= signed_data1 - signed_data2;
+  alu_or <= data1 | data2;
+  alu_and <= data1 & data2;
+  alu_xor <= data1 ^ data2;
+  sll <= data1 << data2[4:0];
+  srl <= data1 >> data2[4:0];
+  sra <= data1 >>> data2[4:0];
+  zero <= alu_result == 0;
+end
 
 always_ff @(posedge clk) begin
   execute_funct3 <= decode_funct3;
@@ -188,7 +207,7 @@ always_ff @(posedge clk) begin
 end
 
 assign jal_instr_addr = (decode_imm << 1) + decode_instr_addr;
-assign jalr_instr_addr = add;
+// assign jalr_instr_addr = add;
 assign execute_jal_src = decode_jal_src;
 assign execute_pc_src = decode_jump | execute_branch;
 
