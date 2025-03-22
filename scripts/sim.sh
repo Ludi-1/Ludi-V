@@ -3,9 +3,15 @@ while getopts ":f:" opt; do
      f) 
         echo "${OPTARG}"
         mkdir -p runs
-        iverilog -o runs/${OPTARG}_tb.vcd sim/${OPTARG}_tb.v
-        vvp runs/${OPTARG}_tb.vcd
-        gtkwave runs/${OPTARG}_tb.vvp
+        rm -rf obj_dir
+        rm waveform.vcd
+        verilator --trace --x-assign unique --x-initial unique -cc rtl/core/*.sv rtl/axi_intf.sv --top-module ${OPTARG} --exe sim/tb_${OPTARG}.cpp
+        make -C obj_dir -f V${OPTARG}.mk V${OPTARG}
+        ./obj_dir/V${OPTARG} +verilator+rand+reset+2
+        surfer waveform.vcd
+        # iverilog -g2012 -o runs/${OPTARG}_tb.vvp sim/${OPTARG}_tb.sv rtl/core/*.sv rtl/axi_intf.sv
+        # vvp runs/${OPTARG}_tb.vvp
+        # surfer runs/${OPTARG}_tb.vcd
        ;;
      *)
        echo "invalid command"

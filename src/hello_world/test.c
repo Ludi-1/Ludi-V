@@ -3,14 +3,8 @@ int function(int a, int b) {
 }
 
 int main(){
-    int a = 5;
-    int b = 11;
-    int c;
-    if (b > a) {
-        c = function(a, b);
-    } else {
-        c = 3;
-    }
+    volatile char *ptr = (char *)0xFF; // Pointer to memory address 255
+    *ptr = 0xA; // Write ASCII 'A' (0x41) to address 255
     return 0;
 }
 

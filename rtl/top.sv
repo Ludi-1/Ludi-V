@@ -216,8 +216,6 @@ stage_memory mem (
     .execute_instr_addr_plus(execute_instr_addr_plus),
     .mem_instr_addr_plus(mem_instr_addr_plus),
 
-    .execute_result_src(execute_result_src),
-    .mem_result_src(mem_result_src),
 
     .execute_datamem_wr_enable(execute_datamem_wr_enable),
     .execute_funct3(execute_funct3),

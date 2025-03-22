@@ -7,7 +7,7 @@ module instr_mem (
 
     // Initialize memory with instructions
     initial begin
-        $readmemh("../src/hello_world.hex", mem);
+        $readmemh("src/hello_world.hex", mem);
         // $readmemh("hello_world.hex", mem);
     end
 

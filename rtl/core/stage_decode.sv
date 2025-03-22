@@ -132,9 +132,17 @@ always_ff @(posedge clk) begin
         decode_datamem_wr_enable <= 0;
     end else begin
         decode_instr_addr <= fetch_instr_addr;
-        decode_instr_addr_plus <= fetch_instr_addr_plus;  
-        rs_data1 <= regfile[rs_addr1];
-        rs_data2 <= regfile[rs_addr2];
+        decode_instr_addr_plus <= fetch_instr_addr_plus;
+        if (rs_addr1 == wb_wr_addr) begin
+          rs_data1 <= wr_data;
+        end else begin
+          rs_data1 <= regfile[rs_addr1];
+        end
+        if (rs_addr2 == wb_wr_addr) begin
+          rs_data2 <= wr_data;
+        end else begin
+          rs_data2 <= regfile[rs_addr2];
+        end
         decode_rd <= rd;
         decode_funct3 <= funct3;
         decode_funct7b5 <= funct7b5;
@@ -169,7 +177,7 @@ always_ff @(posedge clk) begin
                 decode_regfile_wr_enable <= 1;
                 decode_result_src <= PC_PLUS;
                 decode_alu_src <= 0; // dont care
-                decode_imm <= {{20{jal_imm[19]}}, jal_imm};
+                decode_imm <= {{12{jal_imm[19]}}, jal_imm};
                 decode_jump <= 1;
                 decode_branch <= 0;
                 decode_jal_src <= 1; // JAL = 1, JALR = 0
@@ -191,7 +199,7 @@ always_ff @(posedge clk) begin
             end
             STORE: begin
                 decode_regfile_wr_enable <= 0;
-                decode_result_src <= ALU_RESULT; // dont care
+                decode_result_src <= ALU_RESULT;
                 decode_alu_src <= 1;
                 decode_imm <= {{20{s_imm[11]}}, s_imm};
                 decode_jump <= 0;
@@ -204,13 +212,13 @@ always_ff @(posedge clk) begin
             LOAD: begin
                 decode_regfile_wr_enable <= 1;
                 decode_result_src <= MEM_TO_REG;
-                decode_alu_src <= 1;
+                decode_alu_src <= 0; // imm + rs1
                 decode_imm <= {{20{i_imm[11]}}, i_imm};
                 decode_jump <= 0;
                 decode_branch <= 0;
                 decode_jal_src <= 0; // dont care
                 decode_datamem_wr_enable <= 0;
-                decode_alu_op <= 2'b00;
+                decode_alu_op <= 2'b00; // rs1 + offset
                 decode_lui_auipc <= 0;
             end
             BRANCH: begin

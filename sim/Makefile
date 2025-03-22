@@ -1,4 +1,4 @@
-# Makefile for rtl/axi_lite_impl
+#Makefile for rtl/axi_lite_impl
 
 # defaults
 SIM = icarus

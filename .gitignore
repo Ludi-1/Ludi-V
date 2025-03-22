@@ -9,3 +9,6 @@ vcd
 *.hex
 *.fst
 *.vcd
+*.vvp
+obj_dir
+runs
