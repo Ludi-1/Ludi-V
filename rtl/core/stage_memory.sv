@@ -41,23 +41,12 @@ assign axi.araddr = data_mem_addr;
 assign axi.wvalid = execute_datamem_wr_enable;
 assign axi.awvalid = execute_datamem_wr_enable;
 
-/*
-localparam NUM_SLAVES = 2;
-
-axi_interconnect #(
-  .NUM_SLAVES(NUM_SLAVES)
-) axi_interconnect_inst (
-  .axi_master(axi_intf_mem_stage.slave),
-  .axi_slave0(axi_intf_data_mem.master),
-  .axi_slave1(axi),
-  .select(data_mem_addr == 32'h00_00_00_FF)
-);
-
-data_mem #(
-) data_mem_inst (
-  .axi(axi_intf_data_mem.slave)
-);
-*/
+assign axi.awlen = 0;
+assign axi.wlast = 0;
+assign axi.bready = 0;
+assign axi.arlen = 0;
+assign axi.rready = 0;
+assign axi.arvalid = 0;
 
 always_ff @(posedge axi.aclk) begin
   execute_datamem_wr_enable_q <= execute_datamem_wr_enable;

@@ -1,11 +1,21 @@
 int function(int a, int b) {
-    return a + b;
+  return a + b;
 }
 
 int main(){
-    volatile char *ptr = (char *)0xFF; // Pointer to memory address 255
-    *ptr = 0xA; // Write ASCII 'A' (0x41) to address 255
-    return 0;
+  volatile char *ptr1 = (char *)0xFF;
+  *ptr1 = 0xA;
+  
+  volatile char *ptr2 = (char *)0xFF;
+  *ptr2 = 0xC;
+  
+  volatile char *ptr3 = (char *)0xAF;
+  *ptr2 = *ptr1;
+
+  volatile char *ptr4 = (char *)0xFF;
+  *ptr3 = 0xD;
+
+  return 0;
 }
 
 /*

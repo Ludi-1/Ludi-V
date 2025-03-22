@@ -125,8 +125,8 @@ always_ff @(posedge clk) begin
         decode_jump <= 0;
         decode_branch <= 0;
         decode_jal_src <= 0;
-        // rs_data1 <= 0;
-        // rs_data2 <= 0;
+        rs_data1 <= 0;
+        rs_data2 <= 0;
         decode_rd <= 0;
         decode_alu_op <= 0;
         decode_funct3 <= 0;

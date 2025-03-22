@@ -4,7 +4,7 @@
 #include <verilated_vcd_c.h>
 #include "Vcore_wrapper.h"
 
-#define MAX_SIM_TIME 60
+#define MAX_SIM_TIME 200
 vluint64_t sim_time = 0;
 
 int main(int argc, char** argv, char** env) {
