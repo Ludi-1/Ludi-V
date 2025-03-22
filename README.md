@@ -12,3 +12,7 @@ make
 
 echo 'export PATH="$PATH:/opt/riscv/bin"' &>> ~/.bashrc
 ```
+
+```
+vivado -mode tcl -source scripts/project.tcl
+```

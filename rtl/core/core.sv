@@ -1,25 +1,7 @@
-module core #(parameter ADDR_WIDTH = 32, DATA_WIDTH = 32) (
+module core #(parameter ADDR_WIDTH = 32, DATA_WIDTH = 32, NUM_SLAVES = 2) (
   axi_intf.master axi
-    /*input logic clk,
-    input logic rstn,
-
-    output logic [ADDR_WIDTH-1:0] awaddr,
-    output logic awvalid,
-    input logic awready,
-    output logic [DATA_WIDTH-1:0] wdata,
-    output logic [(DATA_WIDTH/8)-1:0] wstrb,
-    output logic wvalid,
-    input logic wready,
-    input logic bvalid,
-    input logic bready,
-
-    output logic [ADDR_WIDTH-1:0] araddr,
-    output logic arvalid,
-    input logic arready,
-    input logic [DATA_WIDTH-1:0] rdata,
-    input logic rvalid,
-    output logic rready*/
 );
+
 
 wire execute_pc_src, execute_jal_src, flush_fetch;
 wire [31:0] fetch_instr_addr_plus,
@@ -162,8 +144,25 @@ stage_execute execute (
   .execute_alu_result(execute_alu_result)
 );
 
+axi_intf axi_interconnect (axi.aclk, axi.aresetn);
+axi_intf axi_data_mem (axi.aclk, axi.aresetn);
+
+axi_interconnect #(
+  .NUM_SLAVES(NUM_SLAVES)
+) axi_interconnect_inst (
+  .axi_master(axi_interconnect.slave),
+  .axi_slave0(axi_data_mem.master),
+  .axi_slave1(axi),
+  .select(execute_alu_result == 32'h00_00_00_FF) // data_mem_addr = execute_alu_result
+);
+
+data_mem #(
+) data_mem_inst (
+  .axi(axi_data_mem.slave)
+);
+
 stage_memory mem (
-  .axi(axi),
+  .axi(axi_interconnect.master),
 
   .execute_rd(execute_rd),
   .mem_rd(mem_rd),

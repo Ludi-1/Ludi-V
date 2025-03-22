@@ -12,3 +12,7 @@ vcd
 *.vvp
 obj_dir
 runs
+*.log
+*.jou
+*.str
+ludi-v
